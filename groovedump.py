@@ -60,22 +60,22 @@ def read_packet_headers(f, endianness):
     return _read_headers(f, endianness, PACKET_HEADERS_FORMAT, fields)
 
 
-def read_packets(f, endianness):
-    while True:
-        headers = read_packet_headers(f, endianness)
-        if headers:
-            data = f.read(headers['data_length'])
-            yield headers, data
-        else:
-            break
+def process_ip_data(f, data_length):
+    f.read(data_length)
 
 
 def main():
     f = fileWithStruct('/tmp/tcpdump.data', 'r')
     endianness = discover_endianness(f)
     file_headers = read_file_headers(f, endianness)
-    for headers, data in read_packets(f, endianness):
+    has_more_packets = True
+    while has_more_packets:
+        headers = read_packet_headers(f, endianness)
         print headers
+        if headers:
+            process_ip_data(f, headers['data_length'])
+        else:
+            has_more_packets = False
 
 
 
